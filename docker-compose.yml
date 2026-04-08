@@ -1,7 +1,7 @@
 # New-API Docker Compose Configuration
 #
 # Cloud deployment profile:
-#   1. Replace the placeholder secrets and database password below
+#   1. Edit .env
 #   2. docker compose up -d
 #   3. Access at http://<your-server>:3000
 
@@ -12,19 +12,19 @@ services:
     restart: always
     command: --log-dir /app/logs
     ports:
-      - "3000:3000"
+      - "${APP_PORT}:${APP_PORT}"
     volumes:
       - ./data:/data
       - ./logs:/app/logs
     environment:
-      - PORT=3000
-      - SQL_DSN=postgresql://root:change_me_cloud_password_123@postgres:5432/new-api
-      - REDIS_CONN_STRING=redis://redis:6379/0
-      - TZ=UTC
-      - ERROR_LOG_ENABLED=true # 是否启用错误日志记录 (Whether to enable error log recording)
-      - BATCH_UPDATE_ENABLED=true  # 是否启用批量更新 (Whether to enable batch update)
-      - SESSION_SECRET=replace_me_with_a_random_hex_string
-      - CRYPTO_SECRET=replace_me_with_another_random_hex_string
+      - PORT=${APP_PORT}
+      - SQL_DSN=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_CONN_STRING=${REDIS_CONN_STRING}
+      - TZ=${APP_TZ}
+      - ERROR_LOG_ENABLED=${ERROR_LOG_ENABLED} # 是否启用错误日志记录 (Whether to enable error log recording)
+      - BATCH_UPDATE_ENABLED=${BATCH_UPDATE_ENABLED}  # 是否启用批量更新 (Whether to enable batch update)
+      - SESSION_SECRET=${SESSION_SECRET}
+      - CRYPTO_SECRET=${CRYPTO_SECRET}
 #      - STREAMING_TIMEOUT=300  # 流模式无响应超时时间，单位秒，默认120秒，如果出现空补全可以尝试改为更大值 （Streaming timeout in seconds, default is 120s. Increase if experiencing empty completions）
 #      - SYNC_FREQUENCY=60  # Uncomment if regular database syncing is needed
 #      - GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX  # Google Analytics 的测量 ID (Google Analytics Measurement ID)
@@ -37,7 +37,7 @@ services:
     networks:
       - new-api-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:${APP_PORT}/api/status | grep -o '\"success\":\\s*true' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -54,15 +54,15 @@ services:
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: change_me_cloud_password_123
-      POSTGRES_DB: new-api
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
       - new-api-network
     ports:
-      - "5432:5432"  # Optional: remove this if PostgreSQL should stay internal only
+      - "${POSTGRES_PORT}:5432"  # Optional: remove this if PostgreSQL should stay internal only
 
 volumes:
   pg_data:
