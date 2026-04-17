@@ -30,3 +30,4 @@ data/
 .gocache-temp
 .gopath
 .omx/
+token_estimator_test.go
